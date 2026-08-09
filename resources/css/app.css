@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* เนื้อหาแบบ Rich text (จาก RichTextEditor) — คืนสไตล์ list/format ที่ Tailwind reset ออก */
+.rich-content ul {
+    list-style: disc;
+    margin-left: 1.5rem;
+}
+.rich-content ol {
+    list-style: decimal;
+    margin-left: 1.5rem;
+}
+.rich-content a {
+    color: #4f46e5;
+    text-decoration: underline;
+}
+.rich-content p {
+    margin: 0 0 0.25rem;
+}
+
+/* การพิมพ์เอกสาร — ให้กระดาษบันทึกข้อความออกมาสะอาด เต็มหน้า */
+@media print {
+    body {
+        background: #fff !important;
+    }
+    #memo-paper {
+        box-shadow: none !important;
+        --tw-ring-shadow: 0 0 #0000 !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+}

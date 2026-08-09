@@ -1,0 +1,99 @@
+<script setup>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Modal from '@/Components/Modal.vue';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+
+const props = defineProps({
+    year: Number,
+    years: { type: Array, default: () => [] },
+    rows: { type: Array, default: () => [] },
+    total: Number,
+    options: { type: Object, required: true },
+});
+
+const flash = computed(() => usePage().props.flash?.success);
+const money = (n) => Number(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const viewYear = ref(props.year);
+const changeYear = () => router.get(route('finance.project-returns.index'), { year: viewYear.value }, { preserveState: false });
+
+const showModal = ref(false);
+const form = useForm({ doc_no: '', title: '', project_id: '', activity_id: '', expense_category_id: '', amount: '', return_date: '' });
+function openCreate() {
+    form.clearErrors();
+    form.reset();
+    form.return_date = new Date().toISOString().slice(0, 10);
+    showModal.value = true;
+}
+const save = () => form.post(route('finance.project-returns.store'), { preserveScroll: true, onSuccess: () => (showModal.value = false) });
+const del = (r) => confirm(`ลบรายการคืนเงิน "${r.title}"?`) && router.delete(route('finance.project-returns.destroy', r.id), { preserveScroll: true });
+</script>
+
+<template>
+    <Head title="คืนเงินโครงการ" />
+    <AuthenticatedLayout>
+        <template #header>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">ทะเบียนคืนเงินโครงการ</h2>                </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <select v-model="viewYear" @change="changeYear" class="rounded-lg border-gray-300 text-sm">
+                        <option v-for="y in years" :key="y.id" :value="y.year">ปี {{ y.year }}<span v-if="y.is_current"> (ปัจจุบัน)</span></option>
+                        <option v-if="!years.some((y) => y.year === year)" :value="year">ปี {{ year }}</option>
+                    </select>
+                    <button @click="openCreate" class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold text-white hover:bg-indigo-700">+ คืนเงิน</button>
+                </div>
+            </div>
+        </template>
+
+        <div class="py-8">
+            <div class="mx-auto max-w-5xl space-y-4 px-4 sm:px-6 lg:px-8">
+                <div v-if="flash" class="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-emerald-100">{{ flash }}</div>
+                <div class="rounded-2xl bg-white px-5 py-3 text-sm shadow-sm ring-1 ring-gray-100 inline-block"><span class="text-gray-400">รวมคืนเงินปี {{ year }}</span><div class="text-lg font-semibold text-indigo-700">{{ money(total) }} บาท</div></div>
+
+                <div class="overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-gray-100">
+                    <table class="min-w-full divide-y divide-gray-100 text-sm">
+                        <thead class="bg-gray-50 text-left text-xs uppercase tracking-wider text-gray-500">
+                            <tr><th class="px-3 py-3">วันที่</th><th class="px-3 py-3">รายการ</th><th class="px-3 py-3">โครงการ / งบรายจ่าย</th><th class="px-3 py-3 text-right">จำนวนเงิน</th><th class="px-3 py-3 text-center">จัดการ</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            <tr v-if="rows.length === 0"><td colspan="5" class="px-6 py-12 text-center text-gray-400">ยังไม่มีรายการ</td></tr>
+                            <tr v-for="r in rows" :key="r.id" class="text-gray-700 hover:bg-gray-50">
+                                <td class="px-3 py-3 text-gray-500">{{ r.return_date_thai ?? '—' }}<div class="text-xs text-gray-400">{{ r.doc_no }}</div></td>
+                                <td class="px-3 py-3 font-medium text-gray-900">{{ r.title }}</td>
+                                <td class="px-3 py-3 text-gray-500">{{ r.project ?? '—' }}<div class="text-xs text-gray-400">{{ r.expense_category ?? '' }}</div></td>
+                                <td class="px-3 py-3 text-right font-medium text-gray-800">{{ money(r.amount) }}</td>
+                                <td class="px-3 py-3 text-center"><button @click="del(r)" class="text-rose-500 hover:underline">ลบ</button></td>
+                            </tr>
+                        </tbody>
+                        <tfoot v-if="rows.length" class="bg-gray-50 font-semibold text-gray-700"><tr><td colspan="3" class="px-3 py-2 text-right">รวม</td><td class="px-3 py-2 text-right">{{ money(total) }}</td><td></td></tr></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <Modal :show="showModal" @close="showModal = false">
+            <div class="p-6">
+                <h3 class="mb-4 text-base font-semibold text-gray-800">คืนเงินโครงการ</h3>
+                <div class="space-y-3">
+                    <div><label class="block text-xs text-gray-500">ที่เอกสาร</label><input v-model="form.doc_no" class="w-full rounded-lg border-gray-300 text-sm" /></div>
+                    <div><label class="block text-xs text-gray-500">รายการ <span class="text-rose-400">*</span></label><input v-model="form.title" class="w-full rounded-lg border-gray-300 text-sm" /><div v-if="form.errors.title" class="text-xs text-rose-500">{{ form.errors.title }}</div></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-gray-500">โครงการ</label><select v-model="form.project_id" class="w-full rounded-lg border-gray-300 text-sm"><option value="">— เลือก —</option><option v-for="o in options.project" :key="o.id" :value="o.id">{{ o.label }}</option></select></div>
+                        <div><label class="block text-xs text-gray-500">กิจกรรม</label><select v-model="form.activity_id" class="w-full rounded-lg border-gray-300 text-sm"><option value="">— เลือก —</option><option v-for="o in options.activity" :key="o.id" :value="o.id">{{ o.label }}</option></select></div>
+                    </div>
+                    <div><label class="block text-xs text-gray-500">ประเภทรายการจ่าย</label><select v-model="form.expense_category_id" class="w-full rounded-lg border-gray-300 text-sm"><option value="">— เลือก —</option><option v-for="o in options.expense_category" :key="o.id" :value="o.id">{{ o.label }}</option></select></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-gray-500">จำนวนเงิน <span class="text-rose-400">*</span></label><input v-model="form.amount" type="number" step="0.01" class="w-full rounded-lg border-gray-300 text-sm" /><div v-if="form.errors.amount" class="text-xs text-rose-500">{{ form.errors.amount }}</div></div>
+                        <div><label class="block text-xs text-gray-500">วันที่คืน</label><input v-model="form.return_date" type="date" class="w-full rounded-lg border-gray-300 text-sm" /></div>
+                    </div>
+                </div>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button @click="showModal = false" class="rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-100">ยกเลิก</button>
+                    <button @click="save" :disabled="form.processing" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">บันทึก</button>
+                </div>
+            </div>
+        </Modal>
+    </AuthenticatedLayout>
+</template>
