@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/saraban",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Saraban\\": "app/",
+            "Modules\\Saraban\\Database\\Factories\\": "database/factories/",
+            "Modules\\Saraban\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Saraban\\Tests\\": "tests/"
+        }
+    }
+}

@@ -1,0 +1,25 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * ป้าย "ด่วน" สำหรับเอกสาร
+     */
+    public function up(): void
+    {
+        Schema::table('documents', function (Blueprint $table) {
+            $table->boolean('is_urgent')->default(false)->after('status')->comment('เอกสารด่วน');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('documents', function (Blueprint $table) {
+            $table->dropColumn('is_urgent');
+        });
+    }
+};

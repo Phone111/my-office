@@ -1,0 +1,11 @@
+{
+    "Core": true,
+    "Attendance": true,
+    "Announcement": true,
+    "Saraban": true,
+    "Booking": true,
+    "Leave": true,
+    "Notification": true,
+    "Executive": true,
+    "Finance": true
+}
