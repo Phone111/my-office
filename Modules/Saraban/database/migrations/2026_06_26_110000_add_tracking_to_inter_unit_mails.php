@@ -23,7 +23,11 @@ return new class extends Migration
         });
 
         // เติมเลขติดตามให้แถวเดิม (รูปแบบ RB + ปี ค.ศ. 2 หลัก + id 6 หลัก)
-        DB::statement("UPDATE inter_unit_mails SET tracking_no = CONCAT('RB', DATE_FORMAT(created_at, '%y'), LPAD(id, 6, '0')) WHERE tracking_no IS NULL");
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement("UPDATE inter_unit_mails SET tracking_no = 'RB' || strftime('%y', created_at) || printf('%06d', id) WHERE tracking_no IS NULL");
+        } else {
+            DB::statement("UPDATE inter_unit_mails SET tracking_no = CONCAT('RB', DATE_FORMAT(created_at, '%y'), LPAD(id, 6, '0')) WHERE tracking_no IS NULL");
+        }
     }
 
     public function down(): void

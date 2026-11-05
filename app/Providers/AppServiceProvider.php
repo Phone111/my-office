@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Modules\Core\Support\AuditLogger;
@@ -23,7 +24,27 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        $this->registerSqliteFunctions();
         $this->registerAuditLog();
+    }
+
+    /**
+     * ลงทะเบียนฟังก์ชัน SQL ของ MySQL ให้ใช้งานบน SQLite ได้โดยไม่เกิด Error
+     */
+    private function registerSqliteFunctions(): void
+    {
+        try {
+            if (DB::connection()->getDriverName() === 'sqlite') {
+                $pdo = DB::connection()->getPdo();
+                $pdo->sqliteCreateFunction('YEAR', fn ($date) => $date ? (int) date('Y', strtotime($date)) : null, 1);
+                $pdo->sqliteCreateFunction('MONTH', fn ($date) => $date ? (int) date('n', strtotime($date)) : null, 1);
+                $pdo->sqliteCreateFunction('DAY', fn ($date) => $date ? (int) date('j', strtotime($date)) : null, 1);
+                $pdo->sqliteCreateFunction('LPAD', fn ($str, $len, $pad = ' ') => str_pad((string) $str, (int) $len, (string) $pad, STR_PAD_LEFT), 3);
+                $pdo->sqliteCreateFunction('CONCAT', fn (...$args) => implode('', $args));
+            }
+        } catch (\Throwable $e) {
+            //
+        }
     }
 
     /**

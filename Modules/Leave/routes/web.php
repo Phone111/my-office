@@ -16,6 +16,9 @@ Route::middleware(['auth', 'verified'])
     ->prefix('leave')
     ->name('leave.')
     ->group(function () {
+        // ให้ /leave redirect ไปหน้าเขียน/ดูคำขอลา (leave/requests) โดยอัตโนมัติ
+        Route::get('/', fn () => redirect()->route('leave.requests.index'));
+
         // ระบบการลา — หน้าแรก (สถิติ) / เขียนคำขอ / แฟ้มการลา
         Route::get('requests', [LeaveController::class, 'index'])->name('requests.index');
         Route::get('requests/create', [LeaveController::class, 'create'])->name('requests.create');
