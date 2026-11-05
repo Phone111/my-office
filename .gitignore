@@ -28,3 +28,10 @@ yarn-error.log
 # Large database export used locally only
 imports/amss.sql
 
+# Documents, reports, and local inspection scripts
+/งาน/
+*.docx
+*.cjs
+*.ps1
+
+
